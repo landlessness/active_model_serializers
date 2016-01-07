@@ -35,10 +35,30 @@ module ActiveModel
             @virtual_value = VirtualValue.new(id: 1)
           end
 
-          def test_includes_comment_ids
-            expected = { data: [{ type: 'comments', id: '1' }, { type: 'comments', id: '2' }] }
-
-            assert_equal(expected, @adapter.serializable_hash[:data][:relationships][:comments])
+          def test_includes_comment_urls
+            expected  = [{ 
+              class: [ 'comments', 'collection' ],
+              rel: [ 'http://rels.foo.org/comments' ],
+              href: 'http://foo.org/post/42/comments',
+              entities: [
+                {
+                  class: [ 'comment'],
+                  rel: [ 'http://rels.foo.org/comment' ],
+                  href: 'http://foo.org/comments/1',
+                },
+                {
+                  class: [ 'comment' ],
+                  rel: [ 'http://rels.foo.org/comment' ],
+                  href: 'http://foo.org/comments/1',
+                }
+              ]
+              }]
+            assert_equal(
+              expected, 
+              @adapter.serializable_hash[:entities].select do |i|
+                i[:class].include? 'comments'
+              end
+            )
           end
 
           def test_includes_linked_comments
