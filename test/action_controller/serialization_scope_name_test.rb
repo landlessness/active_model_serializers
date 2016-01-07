@@ -20,15 +20,21 @@ class DefaultScopeNameTest < ActionController::TestCase
       User.new(id: 1, name: 'Pete', admin: false)
     end
 
-    def render_new_user
+    def render_new_user_with_json_api
       render json: User.new(id: 1, name: 'Pete', admin: false), serializer: UserSerializer, adapter: :json_api
+    end
+
+    def render_new_user_with_siren
+      render json: User.new(id: 1, name: 'Pete', admin: false), serializer: UserSerializer, adapter: :siren
     end
   end
 
   tests UserTestController
 
   def test_default_scope_name
-    get :render_new_user
+    get :render_new_user_with_json_api
+    assert_equal '{"data":{"id":"1","type":"users","attributes":{"admin?":false}}}', @response.body
+    get :render_new_user_with_siren
     assert_equal '{"data":{"id":"1","type":"users","attributes":{"admin?":false}}}', @response.body
   end
 end
@@ -53,15 +59,21 @@ class SerializationScopeNameTest < ActionController::TestCase
       User.new(id: 2, name: 'Bob', admin: true)
     end
 
-    def render_new_user
+    def render_new_user_with_json_api
       render json: User.new(id: 1, name: 'Pete', admin: false), serializer: AdminUserSerializer, adapter: :json_api
+    end
+
+    def render_new_user_with_siren
+      render json: User.new(id: 1, name: 'Pete', admin: false), serializer: AdminUserSerializer, adapter: :siren
     end
   end
 
   tests AdminUserTestController
 
   def test_override_scope_name_with_controller
-    get :render_new_user
+    get :render_new_user_with_json_api
+    assert_equal '{"data":{"id":"1","type":"users","attributes":{"admin?":true}}}', @response.body
+    get :render_new_user_with_siren
     assert_equal '{"data":{"id":"1","type":"users","attributes":{"admin?":true}}}', @response.body
   end
 end

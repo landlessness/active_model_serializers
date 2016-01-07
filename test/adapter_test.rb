@@ -24,12 +24,17 @@ module ActiveModel
         assert_equal ActiveModel::Serializer::Adapter::FlattenJson, adapter.class
       end
 
-      def test_create_adapter_with_override
+      def test_create_adapter_with_override_with_json_api
         adapter = ActiveModel::Serializer::Adapter.create(@serializer, { adapter: :json_api })
         assert_equal ActiveModel::Serializer::Adapter::JsonApi, adapter.class
       end
 
-      def test_inflected_adapter_class_for_known_adapter
+      def test_create_adapter_with_override_with_siren
+        adapter = ActiveModel::Serializer::Adapter.create(@serializer, { adapter: :siren })
+        assert_equal ActiveModel::Serializer::Adapter::Siren, adapter.class
+      end
+
+      def test_inflected_adapter_class_for_known_adapter_with_json_api
         ActiveSupport::Inflector.inflections(:en) { |inflect| inflect.acronym 'API' }
         klass = ActiveModel::Serializer::Adapter.adapter_class(:json_api)
 
@@ -37,6 +42,16 @@ module ActiveModel
 
         assert_equal ActiveModel::Serializer::Adapter::JsonApi, klass
       end
+
+      def test_inflected_adapter_class_for_known_adapter_with_siren
+        ActiveSupport::Inflector.inflections(:en) { |inflect| inflect.acronym 'API' }
+        klass = ActiveModel::Serializer::Adapter.adapter_class(:siren)
+
+        ActiveSupport::Inflector.inflections.acronyms.clear
+
+        assert_equal ActiveModel::Serializer::Adapter::Siren, klass
+      end
+
     end
   end
 end

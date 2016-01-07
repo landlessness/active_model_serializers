@@ -155,8 +155,27 @@ module ActionController
         assert_equal expected.to_json, @response.body
       end
 
-      def test_render_using_default_root
+      def test_render_using_default_root_with_json_api
         with_adapter :json_api do
+          get :render_using_default_adapter_root
+        end
+        expected = {
+          data: {
+            id: assigns(:profile).id.to_s,
+            type: 'profiles',
+            attributes: {
+              name: 'Name 1',
+              description: 'Description 1'
+            }
+          }
+        }
+
+        assert_equal 'application/json', @response.content_type
+        assert_equal expected.to_json, @response.body
+      end
+
+      def test_render_using_default_root_with_siren
+        with_adapter :siren do
           get :render_using_default_adapter_root
         end
         expected = {
@@ -237,8 +256,32 @@ module ActionController
         assert_equal expected.to_json, @response.body
       end
 
-      def test_render_array_using_implicit_serializer_and_meta
+      def test_render_array_using_implicit_serializer_and_meta_with_json_api
         with_adapter :json_api do
+          get :render_array_using_implicit_serializer_and_meta
+        end
+        expected = {
+          data: [
+            {
+              id: assigns(:profiles).first.id.to_s,
+              type: 'profiles',
+              attributes: {
+                name: 'Name 1',
+                description: 'Description 1'
+              }
+            }
+          ],
+          meta: {
+            total: 10
+          }
+        }
+
+        assert_equal 'application/json', @response.content_type
+        assert_equal expected.to_json, @response.body
+      end
+
+      def test_render_array_using_implicit_serializer_and_meta_with_siren
+        with_adapter :siren do
           get :render_array_using_implicit_serializer_and_meta
         end
         expected = {

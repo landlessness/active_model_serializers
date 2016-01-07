@@ -9,9 +9,14 @@ module ActionController
           render json: @profile
         end
 
-        def render_using_adapter_override
+        def render_using_adapter_override_with_json_api
           @profile = Profile.new({ name: 'Name 1', description: 'Description 1', comments: 'Comments 1' })
           render json: @profile, adapter: :json_api
+        end
+
+        def render_using_adapter_override_with_siren
+          @profile = Profile.new({ name: 'Name 1', description: 'Description 1', comments: 'Comments 1' })
+          render json: @profile, adapter: :siren
         end
 
         def render_skipping_adapter
@@ -27,8 +32,25 @@ module ActionController
         assert_equal '{"name":"Name 1","description":"Description 1"}', response.body
       end
 
-      def test_render_using_adapter_override
-        get :render_using_adapter_override
+      def test_render_using_adapter_override_with_json_api
+        get :render_using_adapter_override_with_json_api
+
+        expected = {
+          data: {
+            id: assigns(:profile).id.to_s,
+            type: 'profiles',
+            attributes: {
+              name: 'Name 1',
+              description: 'Description 1',
+            }
+          }
+        }
+
+        assert_equal expected.to_json, response.body
+      end
+
+      def test_render_using_adapter_override_with_siren
+        get :render_using_adapter_override_with_siren
 
         expected = {
           data: {

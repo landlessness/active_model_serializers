@@ -10,6 +10,7 @@ module ActiveModel
       autoload :JsonApi
       autoload :Null
       autoload :FlattenJson
+      autoload :Siren
 
       def self.create(resource, options = {})
         override = options.delete(:adapter)

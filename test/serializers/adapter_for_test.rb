@@ -7,7 +7,7 @@ module ActiveModel
         @previous_adapter = ActiveModel::Serializer.config.adapter
         # Eager load adapters
         ActiveModel::Serializer::Adapter.eager_load!
-        [:json_api, :flatten_json, :null, :json].each do |adapter_name|
+        [:json_api, :flatten_json, :null, :json, :siren].each do |adapter_name|
           ActiveModel::Serializer::Adapter.lookup(adapter_name)
         end
       end
@@ -69,7 +69,8 @@ module ActiveModel
           'json'.freeze              => ActiveModel::Serializer::Adapter::Json,
           'json_api'.freeze          => ActiveModel::Serializer::Adapter::JsonApi,
           'flatten_json'.freeze      => ActiveModel::Serializer::Adapter::FlattenJson,
-          'null'.freeze              => ActiveModel::Serializer::Adapter::Null
+          'null'.freeze              => ActiveModel::Serializer::Adapter::Null,
+          'siren'.freeze              => ActiveModel::Serializer::Adapter::Siren
         }
         assert_equal ActiveModel::Serializer::Adapter.adapter_map, expected_adapter_map
       end
@@ -79,7 +80,8 @@ module ActiveModel
           'flatten_json'.freeze,
           'json'.freeze,
           'json_api'.freeze,
-          'null'.freeze
+          'null'.freeze,
+          'siren'.freeze
         ]
       end
 

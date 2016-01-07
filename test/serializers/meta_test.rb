@@ -65,6 +65,20 @@ module ActiveModel
         assert_equal expected, adapter.as_json
       end
 
+      def test_meta_key_is_used_with_siren
+        serializer = AlternateBlogSerializer.new(@blog, meta: { total: 10 }, meta_key: 'haha_meta')
+        adapter = ActiveModel::Serializer::Adapter::Siren.new(serializer)
+        expected = {
+          data: {
+            id: '1',
+            type: 'blogs',
+            attributes: { title: 'AMS Hints' }
+          },
+          'haha_meta' => { total: 10 }
+        }
+        assert_equal expected, adapter.as_json
+      end
+
       def test_meta_is_not_present_on_arrays_without_root
         serializer = ArraySerializer.new([@blog], meta: { total: 10 })
         # FlattenJSON doesn't have support to root
