@@ -11,10 +11,15 @@ class ActiveModel::Serializer::Adapter::Siren < ActiveModel::Serializer::Adapter
 
   attr_reader :href_url, :rel_url
 
+  def initialize(serializer, options = {})
+    super
+    @included = ActiveModel::Serializer::Utils.include_args_to_hash(@options[:include])
+    puts "@@@included " + @included.inspect
+  end
+
   def serializable_hash(options = nil)
     @href_url=options[:context].href
     @rel_url=options[:context].rel
-
     {
       class: render_class,
       properties: render_properties,
@@ -36,10 +41,13 @@ class ActiveModel::Serializer::Adapter::Siren < ActiveModel::Serializer::Adapter
     {}
   end
   
-  def render_entities(resource = serializer)
-    resource.associations.map do |association|
-      render_collection association, resource
+  def render_entities
+    serializer.class._reflections.map do |r|
+      render_collection r
     end
+    # resource.associations.map do |association|
+    #   render_collection association, resource
+    # end
   end
   
   def render_actions
@@ -52,30 +60,34 @@ class ActiveModel::Serializer::Adapter::Siren < ActiveModel::Serializer::Adapter
 
   # helper methods
 
+  def render_collection(reflection)
+    {
+      class: render_collection_class(reflection),
+      rel: render_collection_rel(reflection),
+      href: render_collection_href(reflection)
+    }
+  end
+
+  def render_collection_class(reflection)
+    [reflection.name.to_s, 'collection']
+  end
+
   def render_rel(resource)
     [rel_url_for(resource), rel_type_for(resource)].compact
+  end
+
+  def render_collection_rel(reflection)
+    ["#{rel_url}/#{reflection.name}", rel_type_for(reflection)].compact
   end
 
   def render_href(resource)
     "#{href_url}/#{type_id_for(resource)}"
   end
 
-  def render_collection_href(resource, parent)
-    "#{href_url}/#{type_id_for(parent)}/#{type_id_for(resource)}"
-  end
-
-  def render_collection(association, parent)
-    {
-      class: render_collection_class(association),
-      rel: render_rel(association),
-      href: render_collection_href(association, parent)
-    }
+  def render_collection_href(reflection)
+    "#{href_url}/#{type_id_for(serializer)}/#{reflection.name}"
   end
   
-  def render_collection_class(association)
-    [association.key.to_s, 'collection']
-  end
-
   def render_entity(resource, parent=nil)
     {
       class: render_class(resource),
@@ -88,8 +100,7 @@ class ActiveModel::Serializer::Adapter::Siren < ActiveModel::Serializer::Adapter
     "#{rel_url}/#{type_for(resource)}"
   end
 
-  def rel_type_for(resource)
-    reflection = serializer.class._reflections.detect { |r| r.name == resource.name }
+  def rel_type_for(reflection)
     case 
     when reflection.class == ActiveModel::Serializer::BelongsToReflection
       'belongsTo'

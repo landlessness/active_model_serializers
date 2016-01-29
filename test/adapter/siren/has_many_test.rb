@@ -55,38 +55,37 @@ module ActiveModel
             }
               
             mock_request
-            assert_equal(
-              expected,
-              @adapter.serializable_hash(@options)[:entities].detect do |i|
-                i[:class].include? 'comments'
-              end
-            )
+            comments = @adapter.serializable_hash(@options)[:entities].select do |entity|
+              entity[:class].include? 'comments'
+            end
+            assert_equal 1, comments.length
+            assert_equal expected, comments.first
           end
 
           def test_includes_linked_comments
             @adapter = ActiveModel::Serializer::Adapter::Siren.new(@serializer, include: [:comments])
             expected = [{
-              id: '1',
-              type: 'comments',
-              attributes: {
+              href: "#{HREF_URI}/comments/1",
+              rel: [ "#{RELS_URI}/comments", "hasMany" ],
+              class: ['comment'],
+              properties: {
                 body: 'ZOMG A COMMENT'
-              },
-              relationships: {
-                post: { data: { type: 'posts', id: '1' } },
-                author: { data: nil }
               }
             }, {
-              id: '2',
-              type: 'comments',
-              attributes: {
+              href: "#{HREF_URI}/comments/2",
+              rel: [ "#{RELS_URI}/comments", "hasMany" ],
+              class: ['comment'],
+              properties: {
                 body: 'ZOMG ANOTHER COMMENT'
-              },
-              relationships: {
-                post: { data: { type: 'posts', id: '1' } },
-                author: { data: nil }
               }
             }]
-            assert_equal expected, @adapter.serializable_hash[:included]
+            mock_request
+            assert_equal(
+              expected,
+              @adapter.serializable_hash(@options)[:entities].select do |i|
+                i[:class].include? 'comment'
+              end
+            )
           end
 
           def test_limit_fields_of_linked_comments
