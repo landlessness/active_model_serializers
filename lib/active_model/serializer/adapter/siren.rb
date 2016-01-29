@@ -14,7 +14,7 @@ class ActiveModel::Serializer::Adapter::Siren < ActiveModel::Serializer::Adapter
   def serializable_hash(options = nil)
     @href_url=options[:context].href
     @rel_url=options[:context].rel
-    
+
     {
       class: render_class,
       properties: render_properties,
@@ -29,7 +29,7 @@ class ActiveModel::Serializer::Adapter::Siren < ActiveModel::Serializer::Adapter
   # Primary renderers: class, properties, entities, actions, links
 
   def render_class(resource = serializer)
-    if resource.respond_to?(:key)
+    if resource.respond_to?(:each)
       [resource.key.to_s, 'collection']
     else
       [resource.object.class.model_name.singular]

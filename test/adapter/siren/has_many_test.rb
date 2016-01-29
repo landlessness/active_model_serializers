@@ -47,7 +47,7 @@ module ActiveModel
             @options[:context] = context
           end
 
-          def test_includes_comment_urls
+          def test_includes_comments_url
             expected  = { 
               class: [ 'comments', 'collection' ],
               rel: [ "#{RELS_URI}/comments", "hasMany" ],
