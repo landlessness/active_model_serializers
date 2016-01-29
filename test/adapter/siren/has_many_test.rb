@@ -5,6 +5,10 @@ module ActiveModel
     class Adapter
       class Siren
         class HasManyTest < Minitest::Test
+          
+          RELS_URI = 'http://rels.example.com'
+          HREF_URI = 'http://example.com'
+
           def setup
             ActionController::Base.cache_store.clear
             @author = Author.new(id: 1, name: 'Steve K.')
@@ -35,27 +39,25 @@ module ActiveModel
             @virtual_value = VirtualValue.new(id: 1)
           end
 
+          def mock_request(query_parameters = {})
+            context = Minitest::Mock.new
+            context.expect(:rel, RELS_URI)
+            context.expect(:href, HREF_URI)
+            @options = {}
+            @options[:context] = context
+          end
+
           def test_includes_comment_urls
-            expected  = [{ 
+            expected  = { 
               class: [ 'comments', 'collection' ],
-              rel: [ 'http://rels.foo.org/comments' ],
-              href: 'http://foo.org/post/42/comments',
-              entities: [
-                {
-                  class: [ 'comment'],
-                  rel: [ 'http://rels.foo.org/comment' ],
-                  href: 'http://foo.org/comments/1',
-                },
-                {
-                  class: [ 'comment' ],
-                  rel: [ 'http://rels.foo.org/comment' ],
-                  href: 'http://foo.org/comments/1',
-                }
-              ]
-              }]
+              rel: [ "#{RELS_URI}/comments", "hasMany" ],
+              href: "#{HREF_URI}/posts/1/comments"
+            }
+              
+            mock_request
             assert_equal(
-              expected, 
-              @adapter.serializable_hash[:entities].select do |i|
+              expected,
+              @adapter.serializable_hash(@options)[:entities].detect do |i|
                 i[:class].include? 'comments'
               end
             )
