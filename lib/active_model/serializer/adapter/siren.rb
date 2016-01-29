@@ -29,11 +29,7 @@ class ActiveModel::Serializer::Adapter::Siren < ActiveModel::Serializer::Adapter
   # Primary renderers: class, properties, entities, actions, links
 
   def render_class(resource = serializer)
-    if resource.respond_to?(:each)
-      [resource.key.to_s, 'collection']
-    else
-      [resource.object.class.model_name.singular]
-    end
+    [resource.object.class.model_name.singular]
   end
   
   def render_properties
@@ -42,7 +38,7 @@ class ActiveModel::Serializer::Adapter::Siren < ActiveModel::Serializer::Adapter
   
   def render_entities(resource = serializer)
     resource.associations.map do |association|
-      render_association association, resource
+      render_collection association, resource
     end
   end
   
@@ -60,12 +56,24 @@ class ActiveModel::Serializer::Adapter::Siren < ActiveModel::Serializer::Adapter
     [rel_url_for(resource), rel_type_for(resource)].compact
   end
 
-  def render_href(resource, parent=nil)
-    href_url_for(resource, parent)
+  def render_href(resource)
+    "#{href_url}/#{type_id_for(resource)}"
   end
 
-  def render_association(association, parent)
-    render_entity(association, parent)
+  def render_collection_href(resource, parent)
+    "#{href_url}/#{type_id_for(parent)}/#{type_id_for(resource)}"
+  end
+
+  def render_collection(association, parent)
+    {
+      class: render_collection_class(association),
+      rel: render_rel(association),
+      href: render_collection_href(association, parent)
+    }
+  end
+  
+  def render_collection_class(association)
+    [association.key.to_s, 'collection']
   end
 
   def render_entity(resource, parent=nil)
@@ -93,14 +101,6 @@ class ActiveModel::Serializer::Adapter::Siren < ActiveModel::Serializer::Adapter
       'singular'
     else
       nil
-    end
-  end
-
-  def href_url_for(resource, parent=nil)
-    if parent
-      "#{href_url}/#{type_id_for(parent)}/#{type_id_for(resource)}"
-    else
-      "#{href_url}/#{type_id_for(resource)}"
     end
   end
 
