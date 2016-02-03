@@ -9,24 +9,30 @@ class ActiveModel::Serializer::Adapter::Siren < ActiveModel::Serializer::Adapter
   autoload :PaginationLinks
   autoload :FragmentCache
 
-  attr_reader :href_url, :rel_url
+  attr_reader :href_url, :rel_url, :serializable_hash_options
 
   def initialize(serializer, options = {})
     super
     @included = ActiveModel::Serializer::Utils.include_args_to_hash(@options[:include])
-    puts "@@@included " + @included.inspect
   end
 
   def serializable_hash(options = nil)
+    @serializable_hash_options = options
     @href_url=options[:context].href
     @rel_url=options[:context].rel
-    {
+
+    h = {
       class: render_class,
       properties: render_properties,
-      entities: render_entities,
       actions: render_actions,
       links: render_links
     }
+
+    h.merge!({
+      entities: render_entities
+    }) unless options[:excludeEntities]
+    
+    h
   end
 
   private
@@ -45,9 +51,6 @@ class ActiveModel::Serializer::Adapter::Siren < ActiveModel::Serializer::Adapter
     serializer.class._reflections.map do |r|
       render_collection r
     end
-    # resource.associations.map do |association|
-    #   render_collection association, resource
-    # end
   end
   
   def render_actions
@@ -59,13 +62,30 @@ class ActiveModel::Serializer::Adapter::Siren < ActiveModel::Serializer::Adapter
   end
 
   # helper methods
-
+  
   def render_collection(reflection)
-    {
+
+    collection = {
       class: render_collection_class(reflection),
       rel: render_collection_rel(reflection),
       href: render_collection_href(reflection)
     }
+    
+    if (@included.keys.include? reflection.name)
+      collection[:entities] = render_association(serializer.associations.find { |a| a.key == reflection.name }.serializer) 
+    end
+
+    collection
+  end
+
+  def render_association(serializer)
+    serializer.map do |s|
+      h = {
+        rel: [rel_url_for_singular(s)],
+        href: render_href(s)
+      }
+      h.merge(ActiveModel::Serializer::Adapter::Siren.new(s, @options).serializable_hash(serializable_hash_options.merge(excludeEntities: true)))
+    end
   end
 
   def render_collection_class(reflection)
@@ -88,16 +108,12 @@ class ActiveModel::Serializer::Adapter::Siren < ActiveModel::Serializer::Adapter
     "#{href_url}/#{type_id_for(serializer)}/#{reflection.name}"
   end
   
-  def render_entity(resource, parent=nil)
-    {
-      class: render_class(resource),
-      rel: render_rel(resource),
-      href: render_href(resource, parent)
-    }
-  end
-
   def rel_url_for(resource)
     "#{rel_url}/#{type_for(resource)}"
+  end
+
+  def rel_url_for_singular(resource)
+    "#{rel_url}/#{resource.object.class.model_name.singular}"
   end
 
   def rel_type_for(reflection)

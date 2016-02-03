@@ -40,11 +40,11 @@ module ActiveModel
           end
 
           def mock_request(query_parameters = {})
-            context = Minitest::Mock.new
-            context.expect(:rel, RELS_URI)
-            context.expect(:href, HREF_URI)
             @options = {}
-            @options[:context] = context
+            @options[:context] = Class.new {
+               define_method(:rel) { RELS_URI }
+               define_method(:href) { HREF_URI }
+            }.new
           end
 
           def test_includes_comments_url
@@ -65,25 +65,33 @@ module ActiveModel
           def test_includes_linked_comments
             @adapter = ActiveModel::Serializer::Adapter::Siren.new(@serializer, include: [:comments])
             expected = [{
-              href: "#{HREF_URI}/comments/1",
-              rel: [ "#{RELS_URI}/comments", "hasMany" ],
-              class: ['comment'],
-              properties: {
-                body: 'ZOMG A COMMENT'
-              }
-            }, {
-              href: "#{HREF_URI}/comments/2",
-              rel: [ "#{RELS_URI}/comments", "hasMany" ],
-              class: ['comment'],
-              properties: {
-                body: 'ZOMG ANOTHER COMMENT'
-              }
+              class: ["comments", "collection"],
+                rel: ["#{RELS_URI}/comments", "hasMany"],
+              href: "#{HREF_URI}/posts/1/comments",
+              entities: [
+                {
+                  rel: ["#{RELS_URI}/comment"],
+                  href: "#{HREF_URI}/comments/1",
+                  class: ["comment"], 
+                  properties: {},
+                  actions: {}, 
+                  links: {}
+                }, 
+                {
+                  rel: ["#{RELS_URI}/comment"],
+                  href: "#{HREF_URI}/comments/2",
+                  class: ["comment"], 
+                  properties: {},
+                  actions: {},
+                  links: {}
+                }
+              ]
             }]
             mock_request
             assert_equal(
               expected,
               @adapter.serializable_hash(@options)[:entities].select do |i|
-                i[:class].include? 'comment'
+                i[:class].include? 'comments'
               end
             )
           end
