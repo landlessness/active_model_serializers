@@ -73,7 +73,9 @@ module ActiveModel
                   rel: ["#{RELS_URI}/comment"],
                   href: "#{HREF_URI}/comments/1",
                   class: ["comment"], 
-                  properties: {},
+                  properties: {
+                    body: 'ZOMG A COMMENT'
+                  },
                   actions: {}, 
                   links: {}
                 }, 
@@ -81,7 +83,9 @@ module ActiveModel
                   rel: ["#{RELS_URI}/comment"],
                   href: "#{HREF_URI}/comments/2",
                   class: ["comment"], 
-                  properties: {},
+                  properties: {
+                    body: 'ZOMG ANOTHER COMMENT'
+                  },
                   actions: {},
                   links: {}
                 }

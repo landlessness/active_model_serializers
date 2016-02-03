@@ -43,8 +43,8 @@ class ActiveModel::Serializer::Adapter::Siren < ActiveModel::Serializer::Adapter
     [resource.object.class.model_name.singular]
   end
   
-  def render_properties
-    {}
+  def render_properties(resource = serializer)
+    resource.attributes.except(:id)
   end
   
   def render_entities
