@@ -64,6 +64,9 @@ module ActiveModel
 
           def test_includes_linked_comments
             @adapter = ActiveModel::Serializer::Adapter::Siren.new(@serializer, include: [:comments])
+            # each comment ought to have an abbreviated
+            # version of the full representation in this list
+            # have another link rel: collection 
             expected = [{
               class: ["comments", "collection"],
                 rel: ["#{RELS_URI}/comments", "hasMany"],
@@ -76,8 +79,8 @@ module ActiveModel
                   properties: {
                     body: 'ZOMG A COMMENT'
                   },
-                  actions: {}, 
-                  links: {}
+                  actions: [], 
+                  links: [{:rel=>["self"], :href=>"http://example.com/comments/1"}]
                 }, 
                 {
                   rel: ["#{RELS_URI}/comment"],
@@ -86,12 +89,13 @@ module ActiveModel
                   properties: {
                     body: 'ZOMG ANOTHER COMMENT'
                   },
-                  actions: {},
-                  links: {}
+                  actions: [],
+                  links: [{:rel=>["self"], :href=>"http://example.com/comments/2"}]
                 }
               ]
             }]
             mock_request
+            
             assert_equal(
               expected,
               @adapter.serializable_hash(@options)[:entities].select do |i|

@@ -54,11 +54,11 @@ class ActiveModel::Serializer::Adapter::Siren < ActiveModel::Serializer::Adapter
   end
   
   def render_actions
-    {}
+    []
   end
 
   def render_links
-    {}
+    [{ "rel": [ "self" ], "href": render_href(serializer) }]
   end
 
   # helper methods
